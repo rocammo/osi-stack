@@ -36,7 +36,7 @@ public class Layer1 extends Layer {
 			JpcapCaptor jpcap = JpcapCaptor.openDevice(interfaces[interfaceId], 2000, false, 20);
 			// for each pack creates a ReceivePackets object and ends in the receivePacket()
 			// method
-			jpcap.loopPacket(bufferSize, new ReceivePackets());
+			jpcap.loopPacket(bufferSize, new ReceivePackets(interfaces[selectInterface()]));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
