@@ -9,7 +9,7 @@ import util.ReceivePackets;
 public class Layer1 extends Layer {
 	private int interfaceId;
 	private int bufferSize;
-	
+
 	private Scanner scanner = new Scanner(System.in);
 
 	public Layer1(int interfaceId, int bufferSize) {
