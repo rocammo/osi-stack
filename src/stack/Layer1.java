@@ -22,7 +22,7 @@ public class Layer1 extends Layer {
 	}
 
 	@Override
-	public void config(Layer above, Layer below) {
+	public void config() {
 		this.interfaceId = selectInterface();
 		this.bufferSize = resizeBuffer();
 	}
