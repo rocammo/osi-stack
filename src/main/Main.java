@@ -11,7 +11,7 @@ public class Main {
 		physical.setNeighbourLayers(datalink, null);
 		datalink.setNeighbourLayers(null, physical);
 
-		physical.run();
-		datalink.run();
+		physical.start();
+		datalink.start();
 	}
 }

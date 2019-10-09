@@ -1,20 +1,19 @@
 package stack;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Scanner;
 
 import jpcap.*;
-import util.ReceivePackets;
+import jpcap.packet.Packet;
 
 public class Layer1 extends Layer {
 	private int interfaceId;
-	private int bufferSize;
 
 	private Scanner scanner = new Scanner(System.in);
 
-	public Layer1(int interfaceId, int bufferSize) {
+	public Layer1(int interfaceId) {
 		this.interfaceId = interfaceId;
-		this.bufferSize = bufferSize;
 	}
 
 	public Layer1() {
@@ -24,7 +23,6 @@ public class Layer1 extends Layer {
 	@Override
 	public void config() {
 		this.interfaceId = selectInterface();
-		this.bufferSize = resizeBuffer();
 	}
 
 	@Override
@@ -32,18 +30,41 @@ public class Layer1 extends Layer {
 		NetworkInterface[] interfaces = JpcapCaptor.getDeviceList();
 
 		try {
-			// initializes and returns interface
-			JpcapCaptor jpcap = JpcapCaptor.openDevice(interfaces[interfaceId], 2000, false, 20);
-			// for each pack creates a ReceivePackets object and ends in the receivePacket()
-			// method
-			jpcap.loopPacket(bufferSize, new ReceivePackets(interfaces[selectInterface()]));
+			System.out.print("\nOpening captor... ");
+			JpcapCaptor captor = JpcapCaptor.openDevice(interfaces[interfaceId], 2000, false, 20);
+			System.out.println("OK!");
+
+			System.out.print("Opening sender... ");
+			JpcapSender sender = JpcapSender.openDevice(interfaces[interfaceId]);
+			System.out.println("OK!");
+
+			for (int i = 0;; i++) {
+				System.out.print("Packet #" + i + " – ");
+				Packet packet = null;
+
+				while (packet == null) {
+					packet = captor.getPacket();
+
+					if (packet != null) {
+						System.out.println(packet);
+
+						// when a packet is received by the captor,
+						// it is sent upwards (towards layer 2)
+						sendUpwards(packet);
+					}
+
+					// lastly, the packet is sent back to
+					// the network with the modified MAC address
+					sendToNetwork(sender);
+				}
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
 	private int selectInterface() {
-		// Obtain the list of network interfaces
+		// obtain the list of network interfaces
 		NetworkInterface[] devices = JpcapCaptor.getDeviceList();
 
 		// for each network interface
@@ -74,13 +95,21 @@ public class Layer1 extends Layer {
 		return scanner.nextInt();
 	}
 
-	private int resizeBuffer() {
-		System.out.print("What buffer size do you need? ");
-		while (!scanner.hasNextInt()) {
-			scanner.nextLine(); // clear the invalid input before prompting again
-			System.out.print("What buffer size do you need? ");
+	private void sendToNetwork(JpcapSender sender) {
+		try {
+			topSemaphore.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
-		return scanner.nextInt();
+
+		Iterator<Packet> itr = topQueue.iterator();
+
+		while (itr.hasNext()) {
+			Packet packet = itr.next();
+			sender.sendPacket(packet);
+		}
+
+		topSemaphore.release();
 	}
 
 	public int getInterfaceId() {
@@ -89,13 +118,5 @@ public class Layer1 extends Layer {
 
 	public void setInterfaceId(int interfaceId) {
 		this.interfaceId = interfaceId;
-	}
-
-	public int getBufferSize() {
-		return bufferSize;
-	}
-
-	public void setBufferSize(int bufferSize) {
-		this.bufferSize = bufferSize;
 	}
 }
