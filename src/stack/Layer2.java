@@ -49,16 +49,20 @@ public class Layer2 extends Layer {
 			// packet can be sent to all devices on the network
 			EthernetPacket ep = (EthernetPacket) p.datalink;
 
-			if (!Arrays.equals(ep.dst_mac, macAddr)) {
-				byte[] bcastAddr = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
+			byte[] bcastAddr = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
+
+			if (!Arrays.equals(ep.dst_mac, macAddr) && !Arrays.equals(ep.dst_mac, bcastAddr)) {
+				// byte[] bcastAddr = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+				// (byte) 0xff, (byte) 0xff };
 
 				ep.dst_mac = Arrays.copyOf(bcastAddr, MAC_LENGTH);
 				ep.src_mac = Arrays.copyOf(macAddr, MAC_LENGTH);
 
 				p.datalink = ep;
+
+				sendDownwards(p);
 			}
 
-			sendDownwards(p);
 		}
 	}
 
