@@ -29,6 +29,8 @@ public class Layer2 extends Layer {
 
 	@Override
 	public void run() {
+		byte[] bcastAddr = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
+
 		while (true) {
 			try {
 				lowSemaphore.acquire();
@@ -49,18 +51,8 @@ public class Layer2 extends Layer {
 			// packet can be sent to all devices on the network
 			EthernetPacket ep = (EthernetPacket) p.datalink;
 
-			byte[] bcastAddr = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
-
 			if (!Arrays.equals(ep.dst_mac, macAddr) && !Arrays.equals(ep.dst_mac, bcastAddr)) {
-				// byte[] bcastAddr = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
-				// (byte) 0xff, (byte) 0xff };
-
-				ep.dst_mac = Arrays.copyOf(bcastAddr, MAC_LENGTH);
-				ep.src_mac = Arrays.copyOf(macAddr, MAC_LENGTH);
-
-				p.datalink = ep;
-
-				sendDownwards(p);
+				sendUpwards(p);
 			}
 
 		}
