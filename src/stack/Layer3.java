@@ -19,21 +19,31 @@ public class Layer3 extends Layer {
 
 	@Override
 	public void run() {
-		while (true) {
-			Packet p = null;
-			EthernetPacket ethP = (EthernetPacket) p.datalink; // FIXME p.datalink
+		try {
+			lowSemaphore.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		if (!lowQueue.isEmpty()) {
+			Packet p = lowQueue.poll();
+			lowSemaphore.release();
+
+			EthernetPacket ethP = (EthernetPacket) p.datalink;
 			int type = ethP.frametype;
 
 			switch (type) {
 			case EthernetPacket.ETHERTYPE_ARP:
-				sendToProtocol(protocolARP, new Packet()); // FIXME new Packet()
+				sendToProtocol(protocolARP, p);
 				break;
 			case EthernetPacket.ETHERTYPE_IP:
-				sendToProtocol(protocolIP, new Packet()); // FIXME new Packet()
+				sendToProtocol(protocolIP, p);
 				break;
 			default:
 				break;
 			}
+		} else {
+			lowSemaphore.release();
 		}
 	}
 

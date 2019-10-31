@@ -1,6 +1,7 @@
 package stack;
 
 import jpcap.packet.ARPPacket;
+import jpcap.packet.Packet;
 
 public class ProtocolARP extends Protocol {
 	@Override
@@ -13,7 +14,9 @@ public class ProtocolARP extends Protocol {
 			}
 			
 			if (!packets.isEmpty()) {
-				ARPPacket arpPacket = (ARPPacket) packets.poll();
+				Packet p = packets.poll();
+				semaphore.release();
+				ARPPacket arpPacket = (ARPPacket) p;
 				System.out.println("ARP PACKET: " + arpPacket);	
 			} else {
 				semaphore.release();

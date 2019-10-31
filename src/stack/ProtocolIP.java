@@ -1,6 +1,7 @@
 package stack;
 
 import jpcap.packet.IPPacket;
+import jpcap.packet.Packet;
 
 public class ProtocolIP extends Protocol {
 	@Override
@@ -13,7 +14,9 @@ public class ProtocolIP extends Protocol {
 			}
 			
 			if (!packets.isEmpty()) {
-				IPPacket ipPacket = (IPPacket) packets.poll();
+				Packet p = packets.poll();
+				semaphore.release();
+				IPPacket ipPacket = (IPPacket) p;
 				System.out.println("IP PACKET: " + ipPacket);
 			} else {
 				semaphore.release();
