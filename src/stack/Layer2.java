@@ -38,23 +38,21 @@ public class Layer2 extends Layer {
 				e.printStackTrace();
 			}
 
-			if (lowQueue.isEmpty()) {
+			if (!lowQueue.isEmpty()) {
+				Packet p = lowQueue.poll();
 				lowSemaphore.release();
-				continue;
+
+				// if the package comes from another hosts, then, modify the packet
+				// by setting the destination MAC address as broadcast, so that the
+				// packet can be sent to all devices on the network
+				EthernetPacket ep = (EthernetPacket) p.datalink;
+
+				if (!Arrays.equals(ep.dst_mac, macAddr) && !Arrays.equals(ep.dst_mac, bcastAddr)) {
+					sendUpwards(p);
+				}
+			} else {
+				lowSemaphore.release();
 			}
-
-			Packet p = lowQueue.remove();
-			lowSemaphore.release();
-
-			// if the package comes from another hosts, then, modify the packet
-			// by setting the destination MAC address as broadcast, so that the
-			// packet can be sent to all devices on the network
-			EthernetPacket ep = (EthernetPacket) p.datalink;
-
-			if (!Arrays.equals(ep.dst_mac, macAddr) && !Arrays.equals(ep.dst_mac, bcastAddr)) {
-				sendUpwards(p);
-			}
-
 		}
 	}
 

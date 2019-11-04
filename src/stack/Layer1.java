@@ -1,7 +1,6 @@
 package stack;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Scanner;
 
 import jpcap.*;
@@ -34,28 +33,17 @@ public class Layer1 extends Layer {
 			JpcapCaptor captor = JpcapCaptor.openDevice(interfaces[interfaceId], 2000, false, 20);
 			System.out.println("OK!");
 
-			System.out.print("Opening sender... ");
-			JpcapSender sender = JpcapSender.openDevice(interfaces[interfaceId]);
-			System.out.println("OK!");
-
-			for (int i = 0;; i++) {
-				System.out.print("Packet #" + i + " – ");
+			for (int i = 0;; i++) { // TODO TIMER
 				Packet packet = null;
 
 				while (packet == null) {
 					packet = captor.getPacket();
 
 					if (packet != null) {
-						System.out.println(packet);
-
 						// when a packet is received by the captor,
 						// it is sent upwards (towards layer 2)
 						sendUpwards(packet);
 					}
-
-					// lastly, the packet is sent back to
-					// the network with the modified MAC address
-					sendToNetwork(sender);
 				}
 			}
 		} catch (IOException e) {
@@ -93,23 +81,6 @@ public class Layer1 extends Layer {
 			System.out.print("Select the interface you want to use: ");
 		}
 		return scanner.nextInt();
-	}
-
-	private void sendToNetwork(JpcapSender sender) {
-		try {
-			topSemaphore.acquire();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		Iterator<Packet> itr = topQueue.iterator();
-
-		while (itr.hasNext()) {
-			Packet packet = itr.next();
-			sender.sendPacket(packet);
-		}
-
-		topSemaphore.release();
 	}
 
 	public int getInterfaceId() {
