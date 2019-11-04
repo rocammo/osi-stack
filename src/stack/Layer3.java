@@ -9,6 +9,8 @@ public class Layer3 extends Layer {
 
 	public Layer3() {
 		config();
+		protocolARP.start();
+		protocolIP.start();
 	}
 
 	@Override
@@ -19,32 +21,37 @@ public class Layer3 extends Layer {
 
 	@Override
 	public void run() {
-		try {
-			lowSemaphore.acquire();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		if (!lowQueue.isEmpty()) {
-			Packet p = lowQueue.poll();
-			lowSemaphore.release();
-
-			EthernetPacket ethP = (EthernetPacket) p.datalink;
-			int type = ethP.frametype;
-
-			switch (type) {
-			case EthernetPacket.ETHERTYPE_ARP:
-				sendToProtocol(protocolARP, p);
-				break;
-			case EthernetPacket.ETHERTYPE_IP:
-				sendToProtocol(protocolIP, p);
-				break;
-			default:
-				break;
+		while (running) {
+			try {
+				lowSemaphore.acquire();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
-		} else {
-			lowSemaphore.release();
+
+			if (!lowQueue.isEmpty()) {
+				Packet p = lowQueue.poll();
+				lowSemaphore.release();
+
+				EthernetPacket ethP = (EthernetPacket) p.datalink;
+				int type = ethP.frametype;
+
+				switch (type) {
+				case EthernetPacket.ETHERTYPE_ARP:
+					sendToProtocol(protocolARP, p);
+					break;
+				case EthernetPacket.ETHERTYPE_IP:
+					sendToProtocol(protocolIP, p);
+					break;
+				default:
+					break;
+				}
+			} else {
+				lowSemaphore.release();
+			}
 		}
+
+		protocolARP.close();
+		protocolIP.close();
 	}
 
 	public void sendToProtocol(Protocol protocol, Packet p) {

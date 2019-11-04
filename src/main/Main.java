@@ -14,10 +14,16 @@ public class Main {
 		datalink.setNeighbourLayers(network, physical);
 		network.setNeighbourLayers(null, datalink);
 
-		// TODO STOP WHEN BUFFER ENDS
-
 		physical.start();
 		datalink.start();
 		network.start();
+
+		try {
+			Thread.sleep(15000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		physical.close();
 	}
 }

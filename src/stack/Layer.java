@@ -23,6 +23,8 @@ import java.util.concurrent.Semaphore;
 import jpcap.packet.Packet;
 
 public abstract class Layer extends Thread {
+	boolean running = true;
+
 	Layer topLayer;
 	Layer lowLayer;
 
@@ -35,6 +37,15 @@ public abstract class Layer extends Thread {
 	public abstract void config();
 
 	public abstract void run();
+
+	public void close() {
+		System.err.println("Closing " + getClass().getName());
+		this.running = false;
+	}
+
+	public boolean hasFinished() {
+		return (topQueue.isEmpty() && lowQueue.isEmpty()) ? true : false;
+	}
 
 	public void sendUpwards(Packet p) {
 		try {

@@ -33,7 +33,7 @@ public class Layer1 extends Layer {
 			JpcapCaptor captor = JpcapCaptor.openDevice(interfaces[interfaceId], 2000, false, 20);
 			System.out.println("OK!");
 
-			for (int i = 0;; i++) { // TODO TIMER
+			while (running) {
 				Packet packet = null;
 
 				while (packet == null) {
@@ -46,6 +46,8 @@ public class Layer1 extends Layer {
 					}
 				}
 			}
+
+			topLayer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

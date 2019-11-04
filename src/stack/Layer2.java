@@ -31,7 +31,7 @@ public class Layer2 extends Layer {
 	public void run() {
 		byte[] bcastAddr = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
 
-		while (true) {
+		while (running) {
 			try {
 				lowSemaphore.acquire();
 			} catch (InterruptedException e) {
@@ -47,13 +47,15 @@ public class Layer2 extends Layer {
 				// packet can be sent to all devices on the network
 				EthernetPacket ep = (EthernetPacket) p.datalink;
 
-				if (!Arrays.equals(ep.dst_mac, macAddr) && !Arrays.equals(ep.dst_mac, bcastAddr)) {
+				if (Arrays.equals(ep.dst_mac, macAddr) || Arrays.equals(ep.dst_mac, bcastAddr)) {
 					sendUpwards(p);
 				}
 			} else {
 				lowSemaphore.release();
 			}
 		}
+
+		topLayer.close();
 	}
 
 	private byte[] requestMac() {
