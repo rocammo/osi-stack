@@ -50,6 +50,9 @@ public class Layer3 extends Layer {
 			}
 		}
 
+		while (!protocolARP.hasFinished() && !protocolIP.hasFinished()) {
+			// wait for the queues to be emptied
+		}
 		protocolARP.close();
 		protocolIP.close();
 	}

@@ -55,6 +55,9 @@ public class Layer2 extends Layer {
 			}
 		}
 
+		while (!topLayer.hasFinished()) {
+			// wait for the queues to be emptied
+		}
 		topLayer.close();
 	}
 
