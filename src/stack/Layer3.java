@@ -43,6 +43,7 @@ public class Layer3 extends Layer {
 					sendToProtocol(protocolIP, p);
 					break;
 				default:
+					System.out.println("Layer3: Unsupported protocol detected, packet dropped.");
 					break;
 				}
 			} else {
