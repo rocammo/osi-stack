@@ -6,6 +6,9 @@ import jpcap.packet.Packet;
 public class Layer3 extends Layer {
 	private ProtocolARP protocolARP;
 	private ProtocolIP protocolIP;
+	
+	private static final int IP_LENGTH = 4;
+	private byte[] ipAddr = new byte[IP_LENGTH];
 
 	public Layer3() {
 		config();
