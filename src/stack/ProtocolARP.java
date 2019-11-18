@@ -9,6 +9,50 @@ public class ProtocolARP extends Protocol {
 	//IP, MAC (and timestamp)
     HashMap<byte[], ArpEntry> arpTable = new HashMap<byte[], ArpEntry>();
 	
+	public static void generateArpRequest(){
+		byte[] broadcast=new byte[]{(byte)255,(byte)255,(byte)255,(byte)255,(byte)255,(byte)255};
+		ARPPacket arp=new ARPPacket();
+		arp.hardtype=ARPPacket.HARDTYPE_ETHER;
+		arp.prototype=ARPPacket.PROTOTYPE_IP;
+		arp.operation=ARPPacket.ARP_REQUEST;
+		arp.hlen=6;
+		arp.plen=4;
+		arp.sender_hardaddr=X;
+		arp.sender_protoaddr=X;
+		arp.target_hardaddr=broadcast;
+		arp.target_protoaddr=X;
+		
+		EthernetPacket ether=new EthernetPacket();
+		ether.frametype=EthernetPacket.ETHERTYPE_ARP;
+		ether.src_mac=X;
+		ether.dst_mac=broadcast;
+		arp.datalink=ether;
+		
+		sender.sendPacket(arp);
+	}
+	
+	public static void generateArpResponse(){
+		byte[] broadcast=new byte[]{(byte)255,(byte)255,(byte)255,(byte)255,(byte)255,(byte)255};
+		ARPPacket arp=new ARPPacket();
+		arp.hardtype=ARPPacket.HARDTYPE_ETHER;
+		arp.prototype=ARPPacket.PROTOTYPE_IP;
+		arp.operation=ARPPacket.ARP_REPLY;
+		arp.hlen=6;
+		arp.plen=4;
+		arp.sender_hardaddr=X;
+		arp.sender_protoaddr=X;
+		arp.target_hardaddr=broadcast;
+		arp.target_protoaddr=X;
+		
+		EthernetPacket ether=new EthernetPacket();
+		ether.frametype=EthernetPacket.ETHERTYPE_ARP;
+		ether.src_mac=X;
+		ether.dst_mac=broadcast;
+		arp.datalink=ether;
+		
+		sender.sendPacket(arp);
+	}
+	
 	@Override
 	public void run() {
 		while (running) {
@@ -30,6 +74,8 @@ public class ProtocolARP extends Protocol {
 					//Here the app has to compare the destination IP and if its its own, reply
 					//if(arpPacket.getTargetProtocolAddress() == LAYER3.ipAddr){
 					//		//Create and send an ARP answer to the network.
+					//
+					//		generateArpResponse(DESTINATION_MAC, LAYER3.ipAddr)
 					//}else{
 					//		//We drop the packet, as we cannot answer it
 					//}
