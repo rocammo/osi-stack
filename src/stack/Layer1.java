@@ -1,9 +1,12 @@
 package stack;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Scanner;
 
 import jpcap.*;
+import jpcap.packet.ARPPacket;
+import jpcap.packet.EthernetPacket;
 import jpcap.packet.Packet;
 
 public class Layer1 extends Layer {
@@ -32,6 +35,10 @@ public class Layer1 extends Layer {
 			System.out.print("\nOpening captor... ");
 			JpcapCaptor captor = JpcapCaptor.openDevice(interfaces[interfaceId], 2000, false, 20);
 			System.out.println("OK!");
+			
+			System.out.print("Opening sender... ");
+			JpcapSender sender = JpcapSender.openDevice(interfaces[interfaceId]);
+			System.out.println("OK!");
 
 			while (running) {
 				Packet packet = null;
@@ -45,6 +52,19 @@ public class Layer1 extends Layer {
 						sendUpwards(packet);
 					}
 				}
+				
+				if (!topQueue.isEmpty()) {
+					Packet p = topQueue.poll();
+					topSemaphore.release();
+					
+					System.out.println("Layer 1: Sending packet to network.");
+					sendToNetwork(sender);
+					//sendDownwards(arpP);
+
+				} else {
+					lowSemaphore.release();
+				}
+				
 			}
 
 			while (!topLayer.hasFinished()) {
@@ -80,10 +100,10 @@ public class Layer1 extends Layer {
 		}
 		System.out.println();
 
-		System.out.print("Select the interface you want to use: ");
+		System.out.print("LAYER 1: Select the interface you want to use: ");
 		while (!scanner.hasNextInt()) {
 			scanner.nextLine(); // clear the invalid input before prompting again
-			System.out.print("Select the interface you want to use: ");
+			System.out.print("LAYER 1: Select the interface you want to use: ");
 		}
 		return scanner.nextInt();
 	}
@@ -94,5 +114,22 @@ public class Layer1 extends Layer {
 
 	public void setInterfaceId(int interfaceId) {
 		this.interfaceId = interfaceId;
+	}
+	
+	private void sendToNetwork(JpcapSender sender) {
+		try {
+			topSemaphore.acquire();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		Iterator<Packet> itr = topQueue.iterator();
+
+		while (itr.hasNext()) {
+			Packet packet = itr.next();
+			sender.sendPacket(packet);
+		}
+
+		topSemaphore.release();
 	}
 }
