@@ -17,7 +17,8 @@ public class ProtocolIP extends Protocol {
 				Packet p = packets.poll();
 				semaphore.release();
 				IPPacket ipPacket = (IPPacket) p;
-				System.out.println("IP PACKET: " + ipPacket);
+				//Drop as we dont handle this type of packets
+				
 			} else {
 				semaphore.release();
 			}

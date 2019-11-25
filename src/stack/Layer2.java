@@ -5,6 +5,7 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import jpcap.packet.ARPPacket;
 import jpcap.packet.EthernetPacket;
 import jpcap.packet.Packet;
 
@@ -47,12 +48,34 @@ public class Layer2 extends Layer {
 				// packet can be sent to all devices on the network
 				EthernetPacket ep = (EthernetPacket) p.datalink;
 
+				// Collect the packets destinated to us or to broadcast
 				if (Arrays.equals(ep.dst_mac, macAddr) || Arrays.equals(ep.dst_mac, bcastAddr)) {
 					sendUpwards(p);
 				}
 			} else {
 				lowSemaphore.release();
 			}
+			
+			
+			if (!topQueue.isEmpty()) {
+				Packet p = topQueue.poll();
+				topSemaphore.release();
+
+				ARPPacket arpP = (ARPPacket) p;
+
+				EthernetPacket ethP = new EthernetPacket();
+				ethP.frametype=EthernetPacket.ETHERTYPE_ARP;
+				ethP.src_mac=getMacAddr();
+				ethP.dst_mac=arpP.target_hardaddr;
+				arpP.datalink=ethP;
+				
+				System.out.println("Layer 2: Sending ARP packet downwards");
+				sendDownwards(arpP);
+
+			} else {
+				lowSemaphore.release();
+			}
+			
 		}
 
 		while (!topLayer.hasFinished()) {
@@ -62,12 +85,12 @@ public class Layer2 extends Layer {
 	}
 
 	private byte[] requestMac() {
-		System.out.print("Enter the source MAC address (XX:XX:XX:XX:XX:XX): ");
+		System.out.print("LAYER 2: Enter the source MAC address (XX:XX:XX:XX:XX:XX): ");
 		String macStr = scanner.nextLine();
 
 		// validate the MAC address with a regular expression
 		while (!isValidMac(macStr)) {
-			System.out.print("Enter the source MAC address (XX:XX:XX:XX:XX:XX): ");
+			System.out.print("LAYER 2: Enter the source MAC address (XX:XX:XX:XX:XX:XX): ");
 			macStr = scanner.nextLine();
 		}
 
