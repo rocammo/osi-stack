@@ -2,6 +2,8 @@ package stack;
 
 import jpcap.packet.ARPPacket;
 import jpcap.packet.Packet;
+
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class ProtocolARP extends Protocol {
@@ -75,28 +77,53 @@ public class ProtocolARP extends Protocol {
 				Packet p = packets.poll();
 				semaphore.release();
 				ARPPacket arpPacket = (ARPPacket) p;
-
-				byte[] bcastAddr = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
-				if (arpPacket.getTargetHardwareAddress() == bcastAddr) {
-
-					// We check the destination IP and if its its own, reply
-					if (arpPacket.getTargetProtocolAddress() == ((Layer3) getLowLayer()).getIpAddr()) {
-						// Arp requests directed to our IP -> Reply with our MAC
-						ARPPacket arpResponse = generateArpResponse((byte[]) arpPacket.getSenderHardwareAddress(),
-								((Layer3) getLowLayer()).getIpAddr(),
-								((Layer2) getLowLayer().getLowLayer()).getMacAddr());
-						System.out.println("ProtocolARP: Sending ARP repsonse.");
-						getLowLayer().sendDownwards(arpResponse);
-					} // Else we drop the packet, as we cannot answer it
-
-				} else {
-					// Arp response directed to our MAC -> Add ARP table
-					System.out.println("ProtocolARP: Added to ARPTable - " + arpPacket.sender_protoaddr + " - "
-							+ arpPacket.sender_hardaddr);
-					arpTable.put(arpPacket.sender_protoaddr, new ArpEntry(arpPacket.sender_hardaddr));
+				
+				System.out.println("Hay paquetico en ProtocolARP, haciendo cosas...");
+				
+				switch(arpPacket.operation){
+					case ARPPacket.ARP_REQUEST: System.out.println("ARP REQUEST ");break;
+					case ARPPacket.ARP_REPLY: System.out.println("ARP REPLY ");break;
+					case ARPPacket.RARP_REQUEST: System.out.println("RARP REQUEST ");break;
+					case ARPPacket.RARP_REPLY: System.out.println("RARP REPLY ");break;
+					case ARPPacket.INV_REQUEST: System.out.println("IDENTIFY REQUEST ");break;
+					case ARPPacket.INV_REPLY: System.out.println("IDENTIFY REPLY ");break;
+					default: System.out.println("UNKNOWN ");break;
+				}
+			
+			
+				switch(arpPacket.operation){
+					case ARPPacket.ARP_REQUEST:
+						System.out.println("ProtocolARP: ARP REQUEST ");
+						
+						if (Arrays.equals(arpPacket.target_protoaddr, (((Layer3) getLowLayer()).getIpAddr()))) {
+							// Arp requests directed to our IP -> Reply with our MAC
+							ARPPacket arpResponse = generateArpResponse( arpPacket.sender_hardaddr,
+									((Layer3) getLowLayer()).getIpAddr(),
+									((Layer2) getLowLayer().getLowLayer()).getMacAddr());
+							System.out.println("ProtocolARP: Sending ARP response.");
+							getLowLayer().sendDownwards(arpResponse);
+							
+						}else {
+							// Else we drop the packet, as we cannot answer it
+							System.out.println("ProtocolARP: TARGET IP no es nuestra, dropeo");
+						}
+						
+						break;
+						
+					case ARPPacket.ARP_REPLY: 
+						System.out.println("ProtocolARP: ARP REPLY ");
+						
+						// Arp reply -> Add ARP table
+						System.out.println("ProtocolARP: Added to ARPTable - " + Arrays.toString(arpPacket.sender_protoaddr) + " - "
+								+ Arrays.toString(arpPacket.sender_hardaddr));
+						arpTable.put(arpPacket.sender_protoaddr, new ArpEntry(arpPacket.sender_hardaddr));
+						
+						break;
+						
+					default: System.out.println("ProtocolARP: UNKNOWN ");break;
 				}
 
-				// System.out.println("ARP PACKET: " + arpPacket);
+
 			} else {
 				semaphore.release();
 			}

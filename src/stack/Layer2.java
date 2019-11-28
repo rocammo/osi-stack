@@ -46,7 +46,7 @@ public class Layer2 extends Layer {
 				// if the package comes from another hosts, then, modify the packet
 				// by setting the destination MAC address as broadcast, so that the
 				// packet can be sent to all devices on the network
-				EthernetPacket ep = (EthernetPacket) p.datalink;
+				EthernetPacket ep = (EthernetPacket) p.datalink;	//Exception in thread "Thread-1" java.lang.NullPointerException
 
 				// Collect the packets destinated to us or to broadcast
 				if (Arrays.equals(ep.dst_mac, macAddr) || Arrays.equals(ep.dst_mac, bcastAddr)) {
