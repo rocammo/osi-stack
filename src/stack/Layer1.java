@@ -51,20 +51,9 @@ public class Layer1 extends Layer {
 						// it is sent upwards (towards layer 2)
 						sendUpwards(packet);
 					}
-				}
-				
-				if (!topQueue.isEmpty()) {
-					Packet p = topQueue.poll();
-					topSemaphore.release();
 					
-					System.out.println("Layer 1: Sending packet to network.");
 					sendToNetwork(sender);
-					//sendDownwards(arpP);
-
-				} else {
-					lowSemaphore.release();
 				}
-				
 			}
 
 			while (!topLayer.hasFinished()) {
@@ -124,10 +113,12 @@ public class Layer1 extends Layer {
 		}
 
 		Iterator<Packet> itr = topQueue.iterator();
-
+		
 		while (itr.hasNext()) {
-			Packet packet = itr.next();
+			Packet packet = topQueue.poll();
 			sender.sendPacket(packet);
+			
+			System.out.print(packet);
 		}
 
 		topSemaphore.release();
