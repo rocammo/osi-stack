@@ -46,21 +46,27 @@ public class Layer3 extends Layer {
 			if (!lowQueue.isEmpty()) {
 				Packet p = lowQueue.poll();
 				lowSemaphore.release();
+				
+				if(p != null && p.datalink != null) {
+					EthernetPacket ethP = (EthernetPacket) p.datalink;
+					int type = ethP.frametype;
 
-				EthernetPacket ethP = (EthernetPacket) p.datalink;
-				int type = ethP.frametype;
-
-				switch (type) {
-				case EthernetPacket.ETHERTYPE_ARP:
-					sendToProtocol(protocolARP, p);
-					break;
-				case EthernetPacket.ETHERTYPE_IP:
-					sendToProtocol(protocolIP, p);
-					break;
-				default:
-					System.out.println("Layer3: Unsupported protocol detected, packet dropped.");
+					switch (type) {
+					case EthernetPacket.ETHERTYPE_ARP:
+						sendToProtocol(protocolARP, p);
+						break;
+					case EthernetPacket.ETHERTYPE_IP:
+						sendToProtocol(protocolIP, p);
+						break;
+					default:
+						System.out.println("Layer3: Unsupported protocol detected, packet dropped.");
+						break;
+					}
+				}else {
+					System.out.println("L2: Error, p.datalink was null.");
 					break;
 				}
+				
 			} else {
 				lowSemaphore.release();
 			}
@@ -73,7 +79,7 @@ public class Layer3 extends Layer {
 				sendDownwards(p);
 
 			} else {
-				lowSemaphore.release();
+				lowSemaphore.release();	
 			}
 		}
 
@@ -127,6 +133,10 @@ public class Layer3 extends Layer {
 	
 	public byte[] getIpAddr() {
 		return ipAddr;
+	}
+	
+	public ProtocolARP getProtocolARP() {
+		return protocolARP;
 	}
 
 	public void setIpAddr(byte[] ipAddr) {

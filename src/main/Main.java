@@ -1,15 +1,17 @@
 package main;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import stack.Layer1;
 import stack.Layer2;
 import stack.Layer3;
+import stack.ProtocolARP;
 
 public class Main {
 	public static void main(String[] args) {
+	
 		
-
 		
 		//System.exit(1);
 		
@@ -24,13 +26,17 @@ public class Main {
 		physical.start();
 		datalink.start();
 		network.start();
+		
+		ProtocolARP.arpQueryApp(network.getProtocolARP());
 
 		try {
-			Thread.sleep(150000);
+			Thread.sleep(15000000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 
 		physical.close();
 	}
+	
+
 }

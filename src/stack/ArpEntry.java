@@ -9,5 +9,13 @@ public class ArpEntry {
 		this.macAddr = macAddr;
 		this.timestamp= System.currentTimeMillis();
 	}
+	
+	public byte[] getMacAddr() {
+		return macAddr;
+	}
+	
+	public long getTimestamp() {
+		return timestamp;
+	}
 
 }
