@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import jpcap.packet.ARPPacket;
 import jpcap.packet.EthernetPacket;
 import jpcap.packet.Packet;
@@ -43,24 +42,16 @@ public class Layer2 extends Layer {
 				Packet p = lowQueue.poll();
 				lowSemaphore.release();
 
-				// if the package comes from another hosts, then, modify the packet
-				// by setting the destination MAC address as broadcast, so that the
-				// packet can be sent to all devices on the network
-
 				if(p != null && p.datalink != null) {
 					EthernetPacket ep = (EthernetPacket) p.datalink;
-					
+
 					// Collect the packets destinated to us or to broadcast
 					if (Arrays.equals(ep.dst_mac, macAddr) || Arrays.equals(ep.dst_mac, bcastAddr)) {
 						sendUpwards(p);
-					}else {
-				//		System.out.println("Layer2: Packet discarded as not directed to us."
-				//	+ Arrays.toString(ep.dst_mac));
-					}
-				
+					}				
 				
 				}else {
-					System.out.println("L2: Error, p.datalink was null.");
+					System.err.println("L2: Error, p.datalink was null.");
 					break;
 				}
 
@@ -75,21 +66,11 @@ public class Layer2 extends Layer {
 				topSemaphore.release();
 
 				ARPPacket arpP = (ARPPacket) p;
-				switch(arpP.operation){
-					case ARPPacket.ARP_REQUEST: System.out.println("L2: ARP REQUEST ");break;
-					case ARPPacket.ARP_REPLY: System.out.println("L2: ARP REPLY ");break;
-					case ARPPacket.RARP_REQUEST: System.out.println("L2: RARP REQUEST ");break;
-					case ARPPacket.RARP_REPLY: System.out.println("L2: RARP REPLY ");break;
-					case ARPPacket.INV_REQUEST: System.out.println("L2: IDENTIFY REQUEST ");break;
-					case ARPPacket.INV_REPLY: System.out.println("L2: IDENTIFY REPLY ");break;
-					default: System.out.println("UNKNOWN ");break;
-				}
 				
 				EthernetPacket ethP = new EthernetPacket();
 				ethP.frametype=EthernetPacket.ETHERTYPE_ARP;
 				ethP.src_mac=getMacAddr();
 			
-				
 				switch(arpP.operation){
 				case ARPPacket.ARP_REQUEST: 
 					ethP.dst_mac=bcastAddr;
@@ -97,6 +78,10 @@ public class Layer2 extends Layer {
 					
 				case ARPPacket.ARP_REPLY:
 					ethP.dst_mac=arpP.target_hardaddr;
+					break;
+					
+				default:
+					System.err.println("Layer2: UNKNOWN PACKET");
 					break;
 				}
 				

@@ -3,10 +3,7 @@ package stack;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Scanner;
-
 import jpcap.*;
-import jpcap.packet.ARPPacket;
-import jpcap.packet.EthernetPacket;
 import jpcap.packet.Packet;
 
 public class Layer1 extends Layer {

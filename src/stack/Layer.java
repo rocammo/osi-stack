@@ -19,7 +19,6 @@ package stack;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.Semaphore;
-
 import jpcap.packet.Packet;
 
 public abstract class Layer extends Thread {

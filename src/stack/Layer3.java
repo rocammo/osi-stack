@@ -1,10 +1,6 @@
 package stack;
 
 import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import jpcap.packet.ARPPacket;
 import jpcap.packet.EthernetPacket;
 import jpcap.packet.Packet;
 
@@ -59,11 +55,11 @@ public class Layer3 extends Layer {
 						sendToProtocol(protocolIP, p);
 						break;
 					default:
-						System.out.println("Layer3: Unsupported protocol detected, packet dropped.");
+						System.err.println("Layer3: Unsupported protocol detected, packet dropped.");
 						break;
 					}
 				}else {
-					System.out.println("L2: Error, p.datalink was null.");
+					System.err.println("L2: Error, p.datalink was null.");
 					break;
 				}
 				
