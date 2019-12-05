@@ -3,7 +3,6 @@ package stack;
 import jpcap.packet.ARPPacket;
 import jpcap.packet.Packet;
 import util.Utils;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -15,7 +14,6 @@ public class ProtocolARP extends Protocol {
 	// User inputs IP address -> Look up ARP table and send ARP request if missing
 
 	// IP & ArpEntry ( MAC and timestamp )
-	//HashMap<byte[], ArpEntry> arpTable = new HashMap<byte[], ArpEntry>();
 	HashMap<String, ArpEntry> arpTable = new HashMap<String, ArpEntry>();
 
 	public static void arpQueryApp(ProtocolARP protocolARP) {
@@ -35,8 +33,6 @@ public class ProtocolARP extends Protocol {
 			int digit = Integer.parseInt(ipArr[i]);
 			ipAddr[i] = (byte) digit;
 		}
-
-		//System.out.println(ipAddr);
 		
 		Layer3 network = (Layer3)protocolARP.getLowLayer();
 		Layer2 datalink = (Layer2)network.getLowLayer();
@@ -50,12 +46,8 @@ public class ProtocolARP extends Protocol {
 		network.sendDownwards(arpRequest);
 		
 		long start = System.currentTimeMillis();
-	    long end = start + 6*1000;	//6 seconds
+	    long end = start + 3*1000;	//3 seconds
 	    while(true) {
-	        
-	    	
-	    	//ArpEntry answer = protocolARP.arpTable.get(target_protoaddr);
-	    	//ArpEntry answer = protocolARP.arpTable.containsKey(key)
 	    	
 	    	if (protocolARP.arpTable.containsKey(Utils.ipBytesToString(target_protoaddr))) {
 	    		ArpEntry answer = protocolARP.arpTable.get(Utils.ipBytesToString(target_protoaddr));
@@ -65,18 +57,7 @@ public class ProtocolARP extends Protocol {
 	    	}
 	    	
 	        if(System.currentTimeMillis() > end) {
-	        	System.out.println("ARP Query App: timeout");
-	        	System.out.println("DEBUG: Not found in hashmap " + Utils.ipBytesToString( target_protoaddr )
-	        	+ Arrays.toString(target_protoaddr) );
-	        	
-		    	if (protocolARP.arpTable.containsKey(Utils.ipBytesToString(target_protoaddr))) {
-		    		ArpEntry answer = protocolARP.arpTable.get(Utils.ipBytesToString(target_protoaddr));
-		    	    System.out.println("ARP Query App: Answer received, " + target_protoaddr
-		    	    		+ " belongs to " + answer.getMacAddr());
-		    	}else {
-		    		System.out.println("NO LO ENCUENTRO NI DE CONAA");
-		    	}
-
+	    		System.err.println("ARP Query App: timeout for " + Utils.ipBytesToString(target_protoaddr));
 	            break;
 	        }
 	    }
@@ -98,14 +79,6 @@ public class ProtocolARP extends Protocol {
 		arp.target_protoaddr = target_protoaddr;
 
 		return arp;
-
-//		EthernetPacket ether=new EthernetPacket();
-//		ether.frametype=EthernetPacket.ETHERTYPE_ARP;
-//		ether.src_mac=X;
-//		ether.dst_mac=broadcast;
-//		arp.datalink=ether;
-//		
-//		sender.sendPacket(arp);
 	}
 
 	public static ARPPacket generateArpResponse(byte[] senderHardwarAdd, byte[] senderProtoAdd,
@@ -122,14 +95,6 @@ public class ProtocolARP extends Protocol {
 		arp.target_hardaddr = target_hardaddr;
 
 		return arp;
-
-//		EthernetPacket ether=new EthernetPacket();
-//		ether.frametype=EthernetPacket.ETHERTYPE_ARP;
-//		ether.src_mac=X;
-//		ether.dst_mac=broadcast;
-//		arp.datalink=ether;
-//		
-//		sender.sendPacket(arp);
 	}
 
 	@Override
@@ -144,20 +109,7 @@ public class ProtocolARP extends Protocol {
 			if (!packets.isEmpty()) {
 				Packet p = packets.poll();
 				semaphore.release();
-				ARPPacket arpPacket = (ARPPacket) p;
-				
-				System.out.println("Hay paquetico en ProtocolARP, haciendo cosas...");
-				
-				switch(arpPacket.operation){
-					case ARPPacket.ARP_REQUEST: System.out.println("ARP REQUEST ");break;
-					case ARPPacket.ARP_REPLY: System.out.println("ARP REPLY ");break;
-					case ARPPacket.RARP_REQUEST: System.out.println("RARP REQUEST ");break;
-					case ARPPacket.RARP_REPLY: System.out.println("RARP REPLY ");break;
-					case ARPPacket.INV_REQUEST: System.out.println("IDENTIFY REQUEST ");break;
-					case ARPPacket.INV_REPLY: System.out.println("IDENTIFY REPLY ");break;
-					default: System.out.println("UNKNOWN ");break;
-				}
-			
+				ARPPacket arpPacket = (ARPPacket) p;			
 			
 				switch(arpPacket.operation){
 					case ARPPacket.ARP_REQUEST:
@@ -173,7 +125,7 @@ public class ProtocolARP extends Protocol {
 							
 						}else {
 							// Else we drop the packet, as we cannot answer it
-							System.out.println("ProtocolARP: TARGET IP no es nuestra, dropeo");
+							System.out.println("ProtocolARP: Dropping the packet as is not directed to resolve our IP");
 						}
 						
 						break;
@@ -181,43 +133,15 @@ public class ProtocolARP extends Protocol {
 					case ARPPacket.ARP_REPLY: 
 						System.out.println("ProtocolARP: ARP REPLY ");
 						
-						// Arp reply -> Add ARP table
-
-						
-//						String hexValue = new String(arpPacket.sender_protoaddr);
-//						String ip = "";
-//						for(int i = 0; i < hexValue.length(); i = i + 2) {
-//						    ip = ip + Integer.valueOf(hexValue.substring(i, i+2), 16) + ".";
-//						}
-//						
-//						System.out.println("ProtocolARP: Added to ARPTable - " + ip + " - "
-//								+ Arrays.toString(arpPacket.sender_hardaddr));
-						
-						System.out.println("DEBUG: Adding to ARPTable " + Utils.ipBytesToString( arpPacket.sender_protoaddr ) 
+						System.out.println("ProtocolARP: Adding to ARPTable " + Utils.ipBytesToString( arpPacket.sender_protoaddr ) 
 							+ " " + Utils.macBytesToString( arpPacket.sender_hardaddr ) );
 						
 						arpTable.put(Utils.ipBytesToString(arpPacket.sender_protoaddr),
-								new ArpEntry(arpPacket.sender_hardaddr));
-						
-						
-						System.out.println("DEBUG, we will try to request it...");
-						ArpEntry answer = arpTable.get( Utils.ipBytesToString(arpPacket.sender_protoaddr) );
-						System.out.println("DEBUG:" + answer.getTimestamp() + " " +
-								Utils.ipBytesToString( arpPacket.sender_protoaddr )
-						+ Arrays.toString(arpPacket.sender_protoaddr) );
-						
-						
-						if (arpTable.containsKey( Utils.ipBytesToString(arpPacket.sender_protoaddr) )) {
-				 			System.out.println("Si containsKey");
-				    	}else {
-				    		System.out.println("No containsKey");
-				    	}
-						
-						
+								new ArpEntry(arpPacket.sender_hardaddr));						
 						
 						break;
 						
-					default: System.out.println("ProtocolARP: UNKNOWN ");break;
+					default: System.err.println("ProtocolARP: UNKNOWN ");break;
 				}
 
 
