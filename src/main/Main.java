@@ -7,8 +7,6 @@ import stack.ProtocolARP;
 
 public class Main {
 	public static void main(String[] args) {
-	
-		//System.exit(1);
 		
 		Layer1 physical = new Layer1();
 		Layer2 datalink = new Layer2();
@@ -24,13 +22,13 @@ public class Main {
 		
 		ProtocolARP.arpQueryApp(network.getProtocolARP());
 
-		try {
-			Thread.sleep(15000000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		physical.close();
+//		try {
+//			Thread.sleep(15000000);
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//
+//		physical.close();
 	}
 	
 
