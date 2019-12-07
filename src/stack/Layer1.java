@@ -53,10 +53,10 @@ public class Layer1 extends Layer {
 				}
 			}
 
-			while (!topLayer.hasFinished()) {
+			//while (!topLayer.hasFinished()) {
 				// wait for the queues to be emptied
-			}
-			topLayer.close();
+			//}
+			//topLayer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -86,10 +86,10 @@ public class Layer1 extends Layer {
 		}
 		System.out.println();
 
-		System.out.print("LAYER 1: Select the interface you want to use: ");
+		System.out.print("Layer 1: Select the interface you want to use: ");
 		while (!scanner.hasNextInt()) {
 			scanner.nextLine(); // clear the invalid input before prompting again
-			System.out.print("LAYER 1: Select the interface you want to use: ");
+			System.out.print("Layer 1: Select the interface you want to use: ");
 		}
 		return scanner.nextInt();
 	}
@@ -111,11 +111,12 @@ public class Layer1 extends Layer {
 
 		Iterator<Packet> itr = topQueue.iterator();
 		
-		while (itr.hasNext()) {
+		while (itr.hasNext()) {			
 			Packet packet = topQueue.poll();
 			sender.sendPacket(packet);
 			
-			System.out.print(packet);
+			System.out.println("Layer 1: Sending packet to the network. (Details below)");
+			System.out.println(packet);
 		}
 
 		topSemaphore.release();

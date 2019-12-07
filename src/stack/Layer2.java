@@ -47,11 +47,13 @@ public class Layer2 extends Layer {
 
 					// Collect the packets destinated to us or to broadcast
 					if (Arrays.equals(ep.dst_mac, macAddr) || Arrays.equals(ep.dst_mac, bcastAddr)) {
+						//System.out.println("Layer 2: New packet directed to our MAC or Broadcast, sending upwards (Details below)");
+						//System.out.println(p);
 						sendUpwards(p);
 					}				
 				
 				}else {
-					System.err.println("L2: Error, p.datalink was null.");
+					System.err.println("Layer 2: Error, p.datalink was null.");
 					break;
 				}
 
@@ -81,7 +83,7 @@ public class Layer2 extends Layer {
 					break;
 					
 				default:
-					System.err.println("Layer2: UNKNOWN PACKET");
+					System.err.println("Layer 2: UNKNOWN PACKET");
 					break;
 				}
 				
@@ -96,10 +98,10 @@ public class Layer2 extends Layer {
 			
 		}
 
-		while (!topLayer.hasFinished()) {
+		//while (!topLayer.hasFinished()) {
 			// wait for the queues to be emptied
-		}
-		topLayer.close();
+		//}
+		//topLayer.close();
 	}
 
 	private byte[] requestMac() {

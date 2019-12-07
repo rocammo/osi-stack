@@ -1,6 +1,9 @@
 package stack;
 
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import jpcap.packet.EthernetPacket;
 import jpcap.packet.Packet;
 
@@ -79,11 +82,11 @@ public class Layer3 extends Layer {
 			}
 		}
 
-		while (!protocolARP.hasFinished() && !protocolIP.hasFinished()) {
+		//while (!protocolARP.hasFinished() && !protocolIP.hasFinished()) {
 			// wait for the queues to be emptied
-		}
-		protocolARP.close();
-		protocolIP.close();
+		//}
+		//protocolARP.close();
+		//protocolIP.close();
 	}
 
 	public void sendToProtocol(Protocol protocol, Packet p) {
@@ -99,8 +102,9 @@ public class Layer3 extends Layer {
 	}
 	
 	private boolean isValidIp(String ipStr) {
-		//TODO
-		return true;
+		Pattern p = Pattern.compile("^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$");
+		Matcher m = p.matcher(ipStr);
+		return m.find();
 	}
 	
 	private byte[] requestIp() {
