@@ -7,7 +7,7 @@ import stack.ProtocolARP;
 
 public class Main {
 	public static void main(String[] args) {
-		
+
 		Layer1 physical = new Layer1();
 		Layer2 datalink = new Layer2();
 		Layer3 network = new Layer3();
@@ -19,7 +19,7 @@ public class Main {
 		physical.start();
 		datalink.start();
 		network.start();
-		
+
 		ProtocolARP.arpQueryApp(network.getProtocolARP());
 
 //		try {
@@ -30,6 +30,5 @@ public class Main {
 //
 //		physical.close();
 	}
-	
 
 }

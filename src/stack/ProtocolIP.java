@@ -13,8 +13,8 @@ public class ProtocolIP extends Protocol {
 			if (!packets.isEmpty()) {
 				packets.poll();
 				semaphore.release();
-				//Drop as we dont handle this type of packets
-				
+				// Drop as we dont handle this type of packets
+
 			} else {
 				semaphore.release();
 			}

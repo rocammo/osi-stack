@@ -32,7 +32,7 @@ public class Layer1 extends Layer {
 			System.out.print("\nOpening captor... ");
 			JpcapCaptor captor = JpcapCaptor.openDevice(interfaces[interfaceId], 2000, false, 20);
 			System.out.println("OK!");
-			
+
 			System.out.print("Opening sender... ");
 			JpcapSender sender = JpcapSender.openDevice(interfaces[interfaceId]);
 			System.out.println("OK!");
@@ -48,15 +48,15 @@ public class Layer1 extends Layer {
 						// it is sent upwards (towards layer 2)
 						sendUpwards(packet);
 					}
-					
+
 					sendToNetwork(sender);
 				}
 			}
 
-			//while (!topLayer.hasFinished()) {
-				// wait for the queues to be emptied
-			//}
-			//topLayer.close();
+			// while (!topLayer.hasFinished()) {
+			// wait for the queues to be emptied
+			// }
+			// topLayer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -101,7 +101,7 @@ public class Layer1 extends Layer {
 	public void setInterfaceId(int interfaceId) {
 		this.interfaceId = interfaceId;
 	}
-	
+
 	private void sendToNetwork(JpcapSender sender) {
 		try {
 			topSemaphore.acquire();
@@ -110,11 +110,11 @@ public class Layer1 extends Layer {
 		}
 
 		Iterator<Packet> itr = topQueue.iterator();
-		
-		while (itr.hasNext()) {			
+
+		while (itr.hasNext()) {
 			Packet packet = topQueue.poll();
 			sender.sendPacket(packet);
-			
+
 			System.out.println("Layer 1: Sending packet to the network. (Details below)");
 			System.out.println(packet);
 		}

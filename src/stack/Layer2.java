@@ -42,66 +42,65 @@ public class Layer2 extends Layer {
 				Packet p = lowQueue.poll();
 				lowSemaphore.release();
 
-				if(p != null && p.datalink != null) {
+				if (p != null && p.datalink != null) {
 					EthernetPacket ep = (EthernetPacket) p.datalink;
 
 					// Collect the packets destinated to us or to broadcast
 					if (Arrays.equals(ep.dst_mac, macAddr) || Arrays.equals(ep.dst_mac, bcastAddr)) {
-						//System.out.println("Layer 2: New packet directed to our MAC or Broadcast, sending upwards (Details below)");
-						//System.out.println(p);
+						// System.out.println("Layer 2: New packet directed to our MAC or Broadcast,
+						// sending upwards (Details below)");
+						// System.out.println(p);
 						sendUpwards(p);
-					}				
-				
-				}else {
+					}
+
+				} else {
 					System.err.println("Layer 2: Error, p.datalink was null.");
 					break;
 				}
 
-
 			} else {
 				lowSemaphore.release();
 			}
-			
-			
+
 			if (!topQueue.isEmpty()) {
 				Packet p = topQueue.poll();
 				topSemaphore.release();
 
 				ARPPacket arpP = (ARPPacket) p;
-				
+
 				EthernetPacket ethP = new EthernetPacket();
-				ethP.frametype=EthernetPacket.ETHERTYPE_ARP;
-				ethP.src_mac=getMacAddr();
-			
-				switch(arpP.operation){
-				case ARPPacket.ARP_REQUEST: 
-					ethP.dst_mac=bcastAddr;
+				ethP.frametype = EthernetPacket.ETHERTYPE_ARP;
+				ethP.src_mac = getMacAddr();
+
+				switch (arpP.operation) {
+				case ARPPacket.ARP_REQUEST:
+					ethP.dst_mac = bcastAddr;
 					break;
-					
+
 				case ARPPacket.ARP_REPLY:
-					ethP.dst_mac=arpP.target_hardaddr;
+					ethP.dst_mac = arpP.target_hardaddr;
 					break;
-					
+
 				default:
 					System.err.println("Layer 2: UNKNOWN PACKET");
 					break;
 				}
-				
-				arpP.datalink=ethP;
-				
+
+				arpP.datalink = ethP;
+
 				System.out.println("Layer 2: Sending ARP packet downwards");
 				sendDownwards(arpP);
 
 			} else {
 				lowSemaphore.release();
 			}
-			
+
 		}
 
-		//while (!topLayer.hasFinished()) {
-			// wait for the queues to be emptied
-		//}
-		//topLayer.close();
+		// while (!topLayer.hasFinished()) {
+		// wait for the queues to be emptied
+		// }
+		// topLayer.close();
 	}
 
 	private byte[] requestMac() {

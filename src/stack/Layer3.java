@@ -10,12 +10,11 @@ import jpcap.packet.Packet;
 public class Layer3 extends Layer {
 	private ProtocolARP protocolARP;
 	private ProtocolIP protocolIP;
-	
+
 	private static final int IP_LENGTH = 4;
 	private byte[] ipAddr = new byte[IP_LENGTH];
-	
+
 	private Scanner scanner = new Scanner(System.in);
-	
 
 	public Layer3() {
 		config();
@@ -29,7 +28,7 @@ public class Layer3 extends Layer {
 		this.protocolARP.setLowLayer(this);
 		this.protocolIP = new ProtocolIP();
 		this.protocolIP.setLowLayer(this);
-		
+
 		this.ipAddr = requestIp();
 	}
 
@@ -45,8 +44,8 @@ public class Layer3 extends Layer {
 			if (!lowQueue.isEmpty()) {
 				Packet p = lowQueue.poll();
 				lowSemaphore.release();
-				
-				if(p != null && p.datalink != null) {
+
+				if (p != null && p.datalink != null) {
 					EthernetPacket ethP = (EthernetPacket) p.datalink;
 					int type = ethP.frametype;
 
@@ -61,15 +60,15 @@ public class Layer3 extends Layer {
 						System.err.println("Layer3: Unsupported protocol detected, packet dropped.");
 						break;
 					}
-				}else {
+				} else {
 					System.err.println("L2: Error, p.datalink was null.");
 					break;
 				}
-				
+
 			} else {
 				lowSemaphore.release();
 			}
-			
+
 			if (!topQueue.isEmpty()) {
 				Packet p = topQueue.poll();
 				topSemaphore.release();
@@ -78,15 +77,15 @@ public class Layer3 extends Layer {
 				sendDownwards(p);
 
 			} else {
-				lowSemaphore.release();	
+				lowSemaphore.release();
 			}
 		}
 
-		//while (!protocolARP.hasFinished() && !protocolIP.hasFinished()) {
-			// wait for the queues to be emptied
-		//}
-		//protocolARP.close();
-		//protocolIP.close();
+		// while (!protocolARP.hasFinished() && !protocolIP.hasFinished()) {
+		// wait for the queues to be emptied
+		// }
+		// protocolARP.close();
+		// protocolIP.close();
 	}
 
 	public void sendToProtocol(Protocol protocol, Packet p) {
@@ -100,13 +99,13 @@ public class Layer3 extends Layer {
 
 		protocol.semaphore.release();
 	}
-	
+
 	private boolean isValidIp(String ipStr) {
 		Pattern p = Pattern.compile("^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$");
 		Matcher m = p.matcher(ipStr);
 		return m.find();
 	}
-	
+
 	private byte[] requestIp() {
 		System.out.print("LAYER 3: Enter the Layer3 IP address (XXX.XXX.XXX.XXX): ");
 		String ipStr = scanner.nextLine();
@@ -116,10 +115,10 @@ public class Layer3 extends Layer {
 			System.out.print("LAYER 3: Enter the Layer3 IP address (XXX.XXX.XXX.XXX):");
 			ipStr = scanner.nextLine();
 		}
-		
+
 		// split into digits the String
 		String[] ipArr = ipStr.split("\\.");
-		
+
 		// convert from String to byte[]
 		byte[] ipAddr = new byte[IP_LENGTH];
 
@@ -130,11 +129,11 @@ public class Layer3 extends Layer {
 
 		return ipAddr;
 	}
-	
+
 	public byte[] getIpAddr() {
 		return ipAddr;
 	}
-	
+
 	public ProtocolARP getProtocolARP() {
 		return protocolARP;
 	}
@@ -143,4 +142,3 @@ public class Layer3 extends Layer {
 		this.ipAddr = ipAddr;
 	}
 }
-
