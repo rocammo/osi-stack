@@ -15,7 +15,7 @@ public class ProtocolARP extends Protocol {
 
 	public static void arpQueryApp(ProtocolARP protocolARP) {
 
-		while (true) {
+		/** while (true) {
 			try {
 				TimeUnit.SECONDS.sleep(3); // Wait between Queries
 			} catch (InterruptedException e) {
@@ -87,7 +87,63 @@ public class ProtocolARP extends Protocol {
 				}
 			}
 
-		}
+		}**/
+
+	}
+	
+	public static byte[] resolveIP(ProtocolARP protocolARP, byte[] ipAddr) {
+
+			Boolean answerOnCache = false;
+
+			if (protocolARP.arpTable.containsKey(Utils.ipBytesToString(ipAddr))) {
+				ArpEntry answer = protocolARP.arpTable.get(Utils.ipBytesToString(ipAddr));
+
+				// Checking its freshness
+				if ((System.currentTimeMillis() - 30 * 1000) < answer.getTimestamp()) {
+					// If existing record has not expired (30 seconds) serve it.
+					answerOnCache = true;
+					System.out
+							.println("DEBUG resolveIP: Answer was already on our table, " + Utils.ipBytesToString(ipAddr)
+									+ " belongs to " + Utils.macBytesToString(answer.getMacAddr()));
+
+				} else {
+					System.out.println("DEBUG resolveIP: Answer was on our table but had expired.");
+				}
+
+			}
+			if (!answerOnCache) { // If we dont have a fresh answer on cache, send ARP request
+				Layer3 network = (Layer3) protocolARP.getLowLayer();
+				Layer2 datalink = (Layer2) network.getLowLayer();
+
+				byte[] senderHardwarAdd = datalink.getMacAddr();
+				byte[] senderProtoAdd = network.getIpAddr();
+				byte[] target_protoaddr = ipAddr;
+
+				ARPPacket arpRequest = ProtocolARP.generateArpRequest(senderHardwarAdd, senderProtoAdd,
+						target_protoaddr);
+				System.out.println("Layer 3: Sending ARP packet downwards");
+				network.sendDownwards(arpRequest);
+
+				long start = System.currentTimeMillis();
+				long end = start + 3 * 1000; // 3 seconds
+				while (true) {
+
+					if (protocolARP.arpTable.containsKey(Utils.ipBytesToString(target_protoaddr))) {
+						ArpEntry answer = protocolARP.arpTable.get(Utils.ipBytesToString(target_protoaddr));
+						System.out.println("DEBUG resolveIP: Answer received, " + Utils.ipBytesToString(target_protoaddr)
+								+ " belongs to " + Utils.macBytesToString(answer.getMacAddr()));
+						return answer.getMacAddr();
+					}
+
+					if (System.currentTimeMillis() > end) {
+						System.err.println("DEBUG resolveIP: timeout for " + Utils.ipBytesToString(target_protoaddr));
+						return null;
+					}
+				}
+			}
+			return null;
+
+
 
 	}
 

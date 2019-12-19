@@ -14,8 +14,9 @@ public class Utils {
 			str.append(s);
 			str.append(":");
 		}
-
-		return str.toString();
+		String string = str.toString();
+		string = string.substring(0, string.length() - 1);
+		return string;
 	}
 
 	public static String ipBytesToString(byte[] arr) {
@@ -31,7 +32,28 @@ public class Utils {
 			str.append(s);
 			str.append(".");
 		}
-
-		return str.toString();
+		String string = str.toString();
+		string = string.substring(0, string.length() - 1);
+		return string;
+	}
+	
+	public static byte[] bitwiseAnd(byte[] bytes1, byte[] bytes2) {
+	    if (bytes1.length < bytes2.length)
+	       return bitwiseAnd(bytes2, bytes1);
+	    // bytes1 is never shorter than bytes2
+	    byte[] ret = bytes1.clone();
+	    for (int i = 0; i < bytes2.length; i++)
+	        ret[i] &= bytes2[i];
+	    return ret;
+	}
+	
+	public static byte[] bitwiseOr(byte[] bytes1, byte[] bytes2) {
+	    if (bytes1.length < bytes2.length)
+	       return bitwiseOr(bytes2, bytes1);
+	    // bytes1 is never shorter than bytes2
+	    byte[] ret = bytes1.clone();
+	    for (int i = 0; i < bytes2.length; i++)
+	        ret[i] |= bytes2[i];
+	    return ret;
 	}
 }
