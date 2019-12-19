@@ -4,6 +4,7 @@ import stack.Layer1;
 import stack.Layer2;
 import stack.Layer3;
 import stack.ProtocolARP;
+import stack.ProtocolICMP;
 
 public class Main {
 	public static void main(String[] args) {
@@ -20,7 +21,7 @@ public class Main {
 		datalink.start();
 		network.start();
 
-		ProtocolARP.arpQueryApp(network.getProtocolARP());
+		ProtocolICMP.pingSenderApp(network);
 
 //		try {
 //			Thread.sleep(15000000);

@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jpcap.packet.ARPPacket;
 import jpcap.packet.EthernetPacket;
+import jpcap.packet.IPPacket;
 import jpcap.packet.Packet;
 
 public class Layer2 extends Layer {
@@ -66,30 +67,48 @@ public class Layer2 extends Layer {
 				Packet p = topQueue.poll();
 				topSemaphore.release();
 
-				ARPPacket arpP = (ARPPacket) p;
+				if(p instanceof IPPacket) {
+					IPPacket ipP = (IPPacket) p;
+					EthernetPacket ethP = new EthernetPacket();
 
-				EthernetPacket ethP = new EthernetPacket();
-				ethP.frametype = EthernetPacket.ETHERTYPE_ARP;
-				ethP.src_mac = getMacAddr();
+					ethP.frametype=EthernetPacket.ETHERTYPE_IP;
+					ethP.src_mac=new byte[]{(byte)00,(byte)26,(byte)18,(byte)00,(byte)25,(byte)65};    
+					ethP.dst_mac=new byte[]{(byte)90,(byte)230,(byte)186,(byte)60,(byte)205,(byte)90};
+					ipP.datalink=ethP;
 
-				switch (arpP.operation) {
-				case ARPPacket.ARP_REQUEST:
-					ethP.dst_mac = bcastAddr;
-					break;
+					System.out.println("Layer 2: Sending IP packet downwards");
+					sendDownwards(ipP);
+					//((EthernetPacket)p.datalink).frametype==EthernetPacket.ETHERTYPE_ARP
+				}else if(p instanceof ARPPacket) {
+					ARPPacket arpP = (ARPPacket) p;
 
-				case ARPPacket.ARP_REPLY:
-					ethP.dst_mac = arpP.target_hardaddr;
-					break;
+					EthernetPacket ethP = new EthernetPacket();
+					ethP.frametype = EthernetPacket.ETHERTYPE_ARP;
+					ethP.src_mac = getMacAddr();
 
-				default:
-					System.err.println("Layer 2: UNKNOWN PACKET");
-					break;
+					switch (arpP.operation) {
+					case ARPPacket.ARP_REQUEST:
+						ethP.dst_mac = bcastAddr;
+						break;
+
+					case ARPPacket.ARP_REPLY:
+						ethP.dst_mac = arpP.target_hardaddr;
+						break;
+
+					default:
+						System.err.println("Layer 2: UNKNOWN PACKET");
+						break;
+					}
+
+					arpP.datalink = ethP;
+
+					System.out.println("Layer 2: Sending ARP packet downwards");
+					sendDownwards(arpP);
+				}else {
+					System.err.println("ERROR: Layer2 line 74, else.");
 				}
-
-				arpP.datalink = ethP;
-
-				System.out.println("Layer 2: Sending ARP packet downwards");
-				sendDownwards(arpP);
+				
+				
 
 			} else {
 				lowSemaphore.release();

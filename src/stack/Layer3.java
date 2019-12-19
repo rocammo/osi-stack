@@ -1,35 +1,41 @@
 package stack;
 
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jpcap.packet.EthernetPacket;
 import jpcap.packet.Packet;
+import util.Utils;
 
 public class Layer3 extends Layer {
 	private ProtocolARP protocolARP;
-	private ProtocolIP protocolIP;
+	private ProtocolICMP protocolICMP;
 
 	private static final int IP_LENGTH = 4;
 	private byte[] ipAddr = new byte[IP_LENGTH];
-
+	private byte[] ipMask = new byte[IP_LENGTH];
+	private byte[] ipGateway = new byte[IP_LENGTH];
+	
 	private Scanner scanner = new Scanner(System.in);
 
 	public Layer3() {
 		config();
 		protocolARP.start();
-		protocolIP.start();
+		protocolICMP.start();
 	}
 
 	@Override
 	public void config() {
 		this.protocolARP = new ProtocolARP();
 		this.protocolARP.setLowLayer(this);
-		this.protocolIP = new ProtocolIP();
-		this.protocolIP.setLowLayer(this);
+		this.protocolICMP = new ProtocolICMP();
+		this.protocolICMP.setLowLayer(this);
 
 		this.ipAddr = requestIp();
+		this.ipMask = requestMask();
+		this.ipGateway = requestGateway();
 	}
 
 	@Override
@@ -54,7 +60,7 @@ public class Layer3 extends Layer {
 						sendToProtocol(protocolARP, p);
 						break;
 					case EthernetPacket.ETHERTYPE_IP:
-						sendToProtocol(protocolIP, p);
+						sendToProtocol(protocolICMP, p);
 						break;
 					default:
 						System.err.println("Layer3: Unsupported protocol detected, packet dropped.");
@@ -129,16 +135,82 @@ public class Layer3 extends Layer {
 
 		return ipAddr;
 	}
+	
+	private byte[] requestMask() {
+		System.out.print("LAYER 3: Enter the network mask (XXX.XXX.XXX.XXX): ");
+		String maskStr = scanner.nextLine();
+
+		// validate the MAC address with a regular expression
+		while (!isValidIp(maskStr)) {
+			System.out.print("LAYER 3: Enter the network mask (XXX.XXX.XXX.XXX):");
+			maskStr = scanner.nextLine();
+		}
+
+		// split into digits the String
+		String[] maskArr = maskStr.split("\\.");
+
+		// convert from String to byte[]
+		byte[] mask = new byte[IP_LENGTH];
+
+		for (int i = 0; i < IP_LENGTH; i++) {
+			int digit = Integer.parseInt(maskArr[i]);
+			mask[i] = (byte) digit;
+		}
+		//System.out.println(Utils.ipBytesToString(mask));
+		return mask;
+	}
+	
+	private byte[] requestGateway() {
+		System.out.print("LAYER 3: Enter the default Gateway (XXX.XXX.XXX.XXX): ");
+		String gatewayStr = scanner.nextLine();
+
+		// validate the MAC address with a regular expression
+		while (!isValidIp(gatewayStr)) {
+			System.out.print("LAYER 3: Enter the default Gateway (XXX.XXX.XXX.XXX):");
+			gatewayStr = scanner.nextLine();
+		}
+
+		// split into digits the String
+		String[] gatewayArr = gatewayStr.split("\\.");
+
+		// convert from String to byte[]
+		byte[] gatewayAddr = new byte[IP_LENGTH];
+
+		for (int i = 0; i < IP_LENGTH; i++) {
+			int digit = Integer.parseInt(gatewayArr[i]);
+			gatewayAddr[i] = (byte) digit;
+		}
+
+		return gatewayAddr;
+	}
 
 	public byte[] getIpAddr() {
 		return ipAddr;
 	}
 
+	public byte[] getIpMask() {
+		return ipMask;
+	}
+
+	public byte[] getIpGateway() {
+		return ipGateway;
+	}
+	
 	public ProtocolARP getProtocolARP() {
 		return protocolARP;
 	}
 
 	public void setIpAddr(byte[] ipAddr) {
 		this.ipAddr = ipAddr;
+	}
+	
+	public Boolean isLocal(byte[] unknownIpAddr) {
+		//System.out.println( Arrays.toString(ipAddr) );
+		//System.out.println( Arrays.toString(ipMask) );
+		//System.out.println( Arrays.toString(unknownIpAddr) );
+		
+		//System.out.println( Arrays.toString( Utils.bitwiseAnd(ipAddr, ipMask) ) );
+		//System.out.println( Arrays.toString( Utils.bitwiseAnd(unknownIpAddr, ipMask) ) );
+		return Arrays.equals(Utils.bitwiseAnd(ipAddr, ipMask), Utils.bitwiseAnd(unknownIpAddr, ipMask));
 	}
 }
