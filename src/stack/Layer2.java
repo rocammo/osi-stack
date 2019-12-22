@@ -8,6 +8,7 @@ import jpcap.packet.ARPPacket;
 import jpcap.packet.EthernetPacket;
 import jpcap.packet.IPPacket;
 import jpcap.packet.Packet;
+import util.Utils;
 
 public class Layer2 extends Layer {
 	private static final int MAC_LENGTH = 6;
@@ -48,9 +49,8 @@ public class Layer2 extends Layer {
 
 					// Collect the packets destinated to us or to broadcast
 					if (Arrays.equals(ep.dst_mac, macAddr) || Arrays.equals(ep.dst_mac, bcastAddr)) {
-						// System.out.println("Layer 2: New packet directed to our MAC or Broadcast,
-						// sending upwards (Details below)");
-						// System.out.println(p);
+						 //System.out.println("Layer 2: New packet directed to our MAC or Broadcast,sending upwards (Details below)");
+						//System.out.println(p);
 						sendUpwards(p);
 					}
 
@@ -70,14 +70,54 @@ public class Layer2 extends Layer {
 				if(p instanceof IPPacket) {
 					IPPacket ipP = (IPPacket) p;
 					EthernetPacket ethP = new EthernetPacket();
+					
+					/**String ipStr = ipP.dst_ip.toString();
+					
+					String[] ipArr = ipStr.split("\\.");
 
-					ethP.frametype=EthernetPacket.ETHERTYPE_IP;
-					ethP.src_mac=new byte[]{(byte)00,(byte)26,(byte)18,(byte)00,(byte)25,(byte)65};    
-					ethP.dst_mac=new byte[]{(byte)90,(byte)230,(byte)186,(byte)60,(byte)205,(byte)90};
-					ipP.datalink=ethP;
+					// convert from String to byte[]
+					byte[] ipAddr = new byte[4];
 
-					System.out.println("Layer 2: Sending IP packet downwards");
-					sendDownwards(ipP);
+					for (int i = 0; i < 4; i++) {
+						int digit = Integer.parseInt(ipArr[i]);
+						ipAddr[i] = (byte) digit;
+					}**/
+					
+					byte[] ipAddr = ipP.dst_ip.getAddress();
+				
+					byte[] destinationHardwarAdd;
+					
+					Layer3 network = (Layer3)getTopLayer();
+					
+
+					
+					if( network.isLocal(ipAddr) ) {
+						System.out.println("sendICMP: Destination ip ("+ Utils.ipBytesToString(ipAddr) +") is local to our network.");
+						destinationHardwarAdd = ProtocolARP.resolveIP(network.getProtocolARP(), ipAddr);
+						
+					}else {
+						System.out.println("sendICMP: Destination ip ("+ Utils.ipBytesToString(ipAddr) +") is outside from our network.");
+						//destinationHardwarAdd = ProtocolARP.resolveIP(network.getProtocolARP(), network.getIpGateway());
+						//TODO HARDCODED
+						byte[] destinationHardwarAdd_ = { (byte) 0xd0, (byte) 0x57, (byte) 0x94, (byte) 0x70, (byte) 0xe8, (byte) 0xcc };
+						destinationHardwarAdd = destinationHardwarAdd_;
+					}
+					
+					if(destinationHardwarAdd == null) {
+						System.err.println("sendICMP: IP is not online, no ARP response given." );
+					}else {
+						System.out.println( Utils.macBytesToString(destinationHardwarAdd) );
+						
+						ethP.frametype=EthernetPacket.ETHERTYPE_IP;
+						ethP.src_mac = getMacAddr();
+						ethP.dst_mac = destinationHardwarAdd;
+						ipP.datalink = ethP;
+
+						System.out.println("Layer 2: Sending IP packet downwards");
+						sendDownwards(ipP);
+					}
+					
+					
 					//((EthernetPacket)p.datalink).frametype==EthernetPacket.ETHERTYPE_ARP
 				}else if(p instanceof ARPPacket) {
 					ARPPacket arpP = (ARPPacket) p;

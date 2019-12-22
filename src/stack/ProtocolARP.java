@@ -125,9 +125,9 @@ public class ProtocolARP extends Protocol {
 				network.sendDownwards(arpRequest);
 
 				long start = System.currentTimeMillis();
-				long end = start + 3 * 1000; // 3 seconds
+				long end = start + 6 * 1000; // 6 seconds
 				while (true) {
-
+					
 					if (protocolARP.arpTable.containsKey(Utils.ipBytesToString(target_protoaddr))) {
 						ArpEntry answer = protocolARP.arpTable.get(Utils.ipBytesToString(target_protoaddr));
 						System.out.println("DEBUG resolveIP: Answer received, " + Utils.ipBytesToString(target_protoaddr)
