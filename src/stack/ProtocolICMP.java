@@ -77,7 +77,6 @@ public class ProtocolICMP extends Protocol {
 	
 	public static void sendICMP(Layer3 network, byte[] ipAddr) {
 		
-
 		    ICMPPacket p=new ICMPPacket();
 		    p.type=ICMPPacket.ICMP_ECHO;
 		    p.seq=1000;
@@ -92,17 +91,8 @@ public class ProtocolICMP extends Protocol {
 				e.printStackTrace();
 			}
 		    p.data="abcdefghijklmnopqrstuvwabcdefghi".getBytes();
-
-		    /** EthernetPacket ether=new EthernetPacket();
-		    ether.frametype=EthernetPacket.ETHERTYPE_IP;
-		    ether.src_mac=new byte[]{(byte)00,(byte)26,(byte)18,(byte)00,(byte)25,(byte)65};    
-		    ether.dst_mac=new byte[]{(byte)90,(byte)230,(byte)186,(byte)60,(byte)205,(byte)90};
-		    p.datalink=ether;*/
 		    
 		    System.out.println("sendICMP: Sending to layer2...");
 		    network.sendDownwards(p);
-
-		
-		
 	}
 }

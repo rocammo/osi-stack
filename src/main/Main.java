@@ -22,16 +22,7 @@ public class Main {
 		network.start();
 
 		ProtocolICMP.pingSenderApp(network);
-
 		
-		
-//		try {
-//			Thread.sleep(15000000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//
-//		physical.close();
 	}
 
 }

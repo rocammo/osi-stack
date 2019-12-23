@@ -33,15 +33,8 @@ public class Layer2 extends Layer {
 	public void run() {
 		byte[] bcastAddr = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff };
 		
-		int i = 0;
 		while (running) {
-			try {
-				lowSemaphore.acquire();
-				if(i++%10000000 == 0) System.out.println("L2...");
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
+			
 			if (!lowQueue.isEmpty()) {
 				Packet p = lowQueue.poll();
 				lowSemaphore.release();
@@ -51,8 +44,6 @@ public class Layer2 extends Layer {
 
 					// Collect the packets destinated to us or to broadcast
 					if (Arrays.equals(ep.dst_mac, macAddr) || Arrays.equals(ep.dst_mac, bcastAddr)) {
-						 //System.out.println("Layer 2: New packet directed to our MAC or Broadcast,sending upwards (Details below)");
-						//System.out.println(p);
 						sendUpwards(p);
 					}
 
@@ -100,8 +91,7 @@ public class Layer2 extends Layer {
 							if(destinationHardwarAdd == null) {
 								System.err.println("sendICMP: IP is not online, no ARP response given." );
 							}else {
-								System.out.println( Utils.macBytesToString(destinationHardwarAdd) );
-								
+								//System.out.println( Utils.macBytesToString(destinationHardwarAdd) );
 								ethP.frametype=EthernetPacket.ETHERTYPE_IP;
 								ethP.src_mac = datalink.getMacAddr();
 								ethP.dst_mac = destinationHardwarAdd;
@@ -109,9 +99,7 @@ public class Layer2 extends Layer {
 
 								System.out.println("Layer 2: Sending IP packet downwards");
 								datalink.sendDownwards(ipP);
-								
 							}
-						   
 					   }
 					});
 
@@ -143,10 +131,8 @@ public class Layer2 extends Layer {
 					System.out.println("Layer 2: Sending ARP packet downwards");
 					sendDownwards(arpP);
 				}else {
-					System.err.println("ERROR: Layer2 line 74, else.");
+					System.err.println("ERROR: Layer2 incorrect packet type.");
 				}
-				
-				
 
 			} else {
 				lowSemaphore.release();
@@ -154,10 +140,6 @@ public class Layer2 extends Layer {
 
 		}
 
-		// while (!topLayer.hasFinished()) {
-		// wait for the queues to be emptied
-		// }
-		// topLayer.close();
 	}
 
 	private byte[] requestMac() {

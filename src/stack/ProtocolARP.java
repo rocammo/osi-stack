@@ -12,84 +12,6 @@ public class ProtocolARP extends Protocol {
 
 	// IP & ArpEntry ( MAC and timestamp )
 	HashMap<String, ArpEntry> arpTable = new HashMap<String, ArpEntry>();
-
-	public static void arpQueryApp(ProtocolARP protocolARP) {
-
-		/** while (true) {
-			try {
-				TimeUnit.SECONDS.sleep(3); // Wait between Queries
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
-			Scanner scanner = new Scanner(System.in);
-
-			System.out.println("ARP Query App: Enter the IP to resolve (XXX.XXX.XXX.XXX): ");
-			String ipStr = scanner.nextLine();
-
-			// split into digits the String
-			String[] ipArr = ipStr.split("\\.");
-
-			// convert from String to byte[]
-			byte[] ipAddr = new byte[4];
-
-			for (int i = 0; i < 4; i++) {
-				int digit = Integer.parseInt(ipArr[i]);
-				ipAddr[i] = (byte) digit;
-			}
-
-			Boolean answerOnCache = false;
-
-			if (protocolARP.arpTable.containsKey(Utils.ipBytesToString(ipAddr))) {
-				ArpEntry answer = protocolARP.arpTable.get(Utils.ipBytesToString(ipAddr));
-
-				// Checking its freshness
-				if ((System.currentTimeMillis() - 30 * 1000) < answer.getTimestamp()) {
-					// If existing record has not expired (30 seconds) serve it.
-					answerOnCache = true;
-					System.out
-							.println("ARP Query App: Answer was already on our table, " + Utils.ipBytesToString(ipAddr)
-									+ " belongs to " + Utils.macBytesToString(answer.getMacAddr()));
-
-				} else {
-					System.out.println("ARP Query App: Answer was on our table but had expired.");
-				}
-
-			}
-			if (!answerOnCache) { // If we dont have a fresh answer on cache, send ARP request
-				Layer3 network = (Layer3) protocolARP.getLowLayer();
-				Layer2 datalink = (Layer2) network.getLowLayer();
-
-				byte[] senderHardwarAdd = datalink.getMacAddr();
-				byte[] senderProtoAdd = network.getIpAddr();
-				byte[] target_protoaddr = ipAddr;
-
-				ARPPacket arpRequest = ProtocolARP.generateArpRequest(senderHardwarAdd, senderProtoAdd,
-						target_protoaddr);
-				System.out.println("Layer 3: Sending ARP packet downwards");
-				network.sendDownwards(arpRequest);
-
-				long start = System.currentTimeMillis();
-				long end = start + 3 * 1000; // 3 seconds
-				while (true) {
-
-					if (protocolARP.arpTable.containsKey(Utils.ipBytesToString(target_protoaddr))) {
-						ArpEntry answer = protocolARP.arpTable.get(Utils.ipBytesToString(target_protoaddr));
-						System.out.println("ARP Query App: Answer received, " + Utils.ipBytesToString(target_protoaddr)
-								+ " belongs to " + Utils.macBytesToString(answer.getMacAddr()));
-						break;
-					}
-
-					if (System.currentTimeMillis() > end) {
-						System.err.println("ARP Query App: timeout for " + Utils.ipBytesToString(target_protoaddr));
-						break;
-					}
-				}
-			}
-
-		}**/
-
-	}
 	
 	public static byte[] resolveIP(ProtocolARP protocolARP, byte[] ipAddr) {
 
@@ -125,7 +47,7 @@ public class ProtocolARP extends Protocol {
 				network.sendDownwards(arpRequest);
 
 				long start = System.currentTimeMillis();
-				long end = start + 6 * 1000; // 6 seconds
+				long end = start + 3 * 1000; // 6 seconds
 				while (true) {
 					
 					if (protocolARP.arpTable.containsKey(Utils.ipBytesToString(target_protoaddr))) {
@@ -143,9 +65,7 @@ public class ProtocolARP extends Protocol {
 				}
 			}
 			return null;
-
-
-
+			
 	}
 
 	public static ARPPacket generateArpRequest(byte[] senderHardwarAdd, byte[] senderProtoAdd,
@@ -167,7 +87,6 @@ public class ProtocolARP extends Protocol {
 
 	public static ARPPacket generateArpResponse(byte[] senderHardwarAdd, byte[] senderProtoAdd, byte[] target_hardaddr,
 			byte[] target_protoaddr) {
-		byte[] broadcast = new byte[] { (byte) 255, (byte) 255, (byte) 255, (byte) 255, (byte) 255, (byte) 255 };
 		ARPPacket arp = new ARPPacket();
 		arp.hardtype = ARPPacket.HARDTYPE_ETHER;
 		arp.prototype = ARPPacket.PROTOTYPE_IP;
