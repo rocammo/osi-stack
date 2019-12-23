@@ -86,12 +86,7 @@ public class Layer3 extends Layer {
 				lowSemaphore.release();
 			}
 		}
-
-		// while (!protocolARP.hasFinished() && !protocolIP.hasFinished()) {
-		// wait for the queues to be emptied
-		// }
-		// protocolARP.close();
-		// protocolIP.close();
+		
 	}
 
 	public void sendToProtocol(Protocol protocol, Packet p) {
@@ -205,12 +200,6 @@ public class Layer3 extends Layer {
 	}
 	
 	public Boolean isLocal(byte[] unknownIpAddr) {
-		//System.out.println( Arrays.toString(ipAddr) );
-		//System.out.println( Arrays.toString(ipMask) );
-		//System.out.println( Arrays.toString(unknownIpAddr) );
-		
-		//System.out.println( Arrays.toString( Utils.bitwiseAnd(ipAddr, ipMask) ) );
-		//System.out.println( Arrays.toString( Utils.bitwiseAnd(unknownIpAddr, ipMask) ) );
 		return Arrays.equals(Utils.bitwiseAnd(ipAddr, ipMask), Utils.bitwiseAnd(unknownIpAddr, ipMask));
 	}
 }
