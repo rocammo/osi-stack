@@ -5,9 +5,13 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
+import com.sun.corba.se.impl.javax.rmi.CORBA.Util;
+
+import jpcap.packet.ARPPacket;
 import jpcap.packet.EthernetPacket;
 import jpcap.packet.ICMPPacket;
 import jpcap.packet.IPPacket;
+import jpcap.packet.Packet;
 import util.Utils;
 
 public class ProtocolICMP extends Protocol {
@@ -21,9 +25,18 @@ public class ProtocolICMP extends Protocol {
 			}
 
 			if (!packets.isEmpty()) {
-				packets.poll();
+				// Handle incoming ICMPs
+				Packet p = packets.poll();
 				semaphore.release();
-				// Drop as we dont handle this type of packets
+				IPPacket ipPacket = (IPPacket) p;
+
+				if(ipPacket instanceof ICMPPacket) {
+					ICMPPacket icmpPacket = (ICMPPacket) ipPacket;
+					System.out.println("ICMP Protocol: Received PONG from " + Utils.ipBytesToString(ipPacket.dst_ip.getAddress()) + ", details below:");
+					System.out.println(icmpPacket);
+				}else {
+					//IP packet but not ICMP
+				}
 
 			} else {
 				semaphore.release();
@@ -35,7 +48,7 @@ public class ProtocolICMP extends Protocol {
 
 		 while (true) {
 			try {
-				TimeUnit.SECONDS.sleep(3); // Wait between Pings
+				TimeUnit.SECONDS.sleep(4); // Wait between Pings
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -63,21 +76,7 @@ public class ProtocolICMP extends Protocol {
 	}
 	
 	public static void sendICMP(Layer3 network, byte[] ipAddr) {
-		byte[] destinationHardwarAdd;
 		
-		if( network.isLocal(ipAddr) ) {
-			System.out.println("sendICMP: Destination ip is local to our network.");
-			destinationHardwarAdd = ProtocolARP.resolveIP(network.getProtocolARP(), ipAddr);
-			
-		}else {
-			System.out.println("sendICMP: Destination ip is outside from our network.");
-			destinationHardwarAdd = ProtocolARP.resolveIP(network.getProtocolARP(), network.getIpGateway());
-		}
-		
-		if(destinationHardwarAdd == null) {
-			System.out.println("sendICMP: IP is not online, no ARP response given." );
-		}else {
-			System.out.println( Utils.macBytesToString(destinationHardwarAdd) );
 
 		    ICMPPacket p=new ICMPPacket();
 		    p.type=ICMPPacket.ICMP_ECHO;
@@ -92,7 +91,7 @@ public class ProtocolICMP extends Protocol {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		    p.data="Pruebita".getBytes();
+		    p.data="abcdefghijklmnopqrstuvwabcdefghi".getBytes();
 
 		    /** EthernetPacket ether=new EthernetPacket();
 		    ether.frametype=EthernetPacket.ETHERTYPE_IP;
@@ -103,7 +102,6 @@ public class ProtocolICMP extends Protocol {
 		    System.out.println("sendICMP: Sending to layer2...");
 		    network.sendDownwards(p);
 
-		}
 		
 		
 	}
