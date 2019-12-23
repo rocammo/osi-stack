@@ -1,5 +1,11 @@
 package util;
 
+import jpcap.packet.EthernetPacket;
+import jpcap.packet.IPPacket;
+import stack.Layer2;
+import stack.Layer3;
+import stack.ProtocolARP;
+
 public class Utils {
 	public static String macBytesToString(byte[] arr) {
 		StringBuilder str = new StringBuilder();
@@ -56,4 +62,5 @@ public class Utils {
 	        ret[i] |= bytes2[i];
 	    return ret;
 	}
+
 }

@@ -93,7 +93,7 @@ public class ProtocolARP extends Protocol {
 	
 	public static byte[] resolveIP(ProtocolARP protocolARP, byte[] ipAddr) {
 
-			Boolean answerOnCache = false;
+			boolean answerOnCache = false;
 
 			if (protocolARP.arpTable.containsKey(Utils.ipBytesToString(ipAddr))) {
 				ArpEntry answer = protocolARP.arpTable.get(Utils.ipBytesToString(ipAddr));
@@ -105,7 +105,7 @@ public class ProtocolARP extends Protocol {
 					System.out
 							.println("DEBUG resolveIP: Answer was already on our table, " + Utils.ipBytesToString(ipAddr)
 									+ " belongs to " + Utils.macBytesToString(answer.getMacAddr()));
-
+					return answer.getMacAddr();
 				} else {
 					System.out.println("DEBUG resolveIP: Answer was on our table but had expired.");
 				}
@@ -138,6 +138,7 @@ public class ProtocolARP extends Protocol {
 					if (System.currentTimeMillis() > end) {
 						System.err.println("DEBUG resolveIP: timeout for " + Utils.ipBytesToString(target_protoaddr));
 						return null;
+						
 					}
 				}
 			}
